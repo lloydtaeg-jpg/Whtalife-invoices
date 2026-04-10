@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Invoice — Whtalife Inc</title>
+<style>
+  :root {
+    --ink: #111;
+    --muted: #666;
+    --line: #e5e5e5;
+    --accent: #0a7d4b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink);
+    margin: 0;
+    padding: 40px;
+    background: #f5f5f5;
+  }
+  .toolbar {
+    max-width: 820px;
+    margin: 0 auto 16px;
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+  .toolbar button {
+    background: var(--ink);
+    color: #fff;
+    border: 0;
+    padding: 10px 16px;
+    font-size: 13px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+  .toolbar button:hover { background: var(--accent); }
+  .toolbar .hint {
+    flex: 1;
+    text-align: left;
+    font-size: 12px;
+    color: var(--muted);
+    align-self: center;
+  }
+  .invoice {
+    max-width: 820px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 56px 64px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  [contenteditable="true"] {
+    outline: none;
+    transition: background 0.15s;
+    border-radius: 3px;
+  }
+  [contenteditable="true"]:hover {
+    background: #fff8d6;
+  }
+  [contenteditable="true"]:focus {
+    background: #fff3a8;
+    box-shadow: 0 0 0 2px #f0d000;
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 24px;
+    margin-bottom: 32px;
+  }
+  .brand img {
+    max-height: 90px;
+    max-width: 260px;
+    display: block;
+    margin-bottom: 12px;
+  }
+  .brand .company {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .brand .company strong {
+    color: var(--ink);
+    display: block;
+    font-size: 15px;
+    margin-bottom: 2px;
+  }
+  .meta { text-align: right; }
+  .meta h1 {
+    font-size: 34px;
+    margin: 0 0 8px;
+    letter-spacing: 2px;
+    color: var(--accent);
+  }
+  .meta table {
+    margin-left: auto;
+    font-size: 13px;
+    border-collapse: collapse;
+  }
+  .meta td { padding: 3px 0 3px 14px; }
+  .meta td:first-child { color: var(--muted); text-align: right; }
+  .parties {
+    display: flex;
+    justify-content: space-between;
+    gap: 32px;
+    margin-bottom: 36px;
+  }
+  .parties section { flex: 1; }
+  .parties h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    margin: 0 0 8px;
+  }
+  .parties p { margin: 0; font-size: 14px; line-height: 1.55; }
+  table.items {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 12px;
+    font-size: 14px;
+  }
+  table.items thead th {
+    background: var(--ink);
+    color: #fff;
+    text-align: left;
+    padding: 12px 14px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-weight: 600;
+  }
+  table.items thead th.num { text-align: right; }
+  table.items tbody td {
+    padding: 14px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  table.items tbody td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .row-actions {
+    width: 28px;
+    text-align: center;
+    padding: 14px 0 !important;
+  }
+  .remove-row {
+    background: none;
+    border: 0;
+    color: #c33;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .remove-row:hover { background: #fde; }
+  .add-row {
+    background: none;
+    border: 1px dashed var(--line);
+    color: var(--muted);
+    padding: 8px 14px;
+    font-size: 13px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-bottom: 24px;
+  }
+  .add-row:hover { border-color: var(--accent); color: var(--accent); }
+  .totals {
+    width: 320px;
+    margin-left: auto;
+    font-size: 14px;
+  }
+  .totals div {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    align-items: baseline;
+  }
+  .totals .grand {
+    border-top: 2px solid var(--ink);
+    margin-top: 6px;
+    padding-top: 12px;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .tax-rate {
+    width: 44px;
+    text-align: right;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 2px 4px;
+    font-size: 13px;
+    font-family: inherit;
+  }
+  footer {
+    margin-top: 48px;
+    border-top: 1px solid var(--line);
+    padding-top: 20px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  footer h4 {
+    color: var(--ink);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0 0 6px;
+  }
+  .notes { margin-bottom: 16px; }
+  .thankyou {
+    text-align: center;
+    font-size: 16px;
+    color: var(--accent);
+    margin-top: 24px;
+    font-weight: 600;
+  }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .invoice { box-shadow: none; padding: 32px; max-width: none; }
+    .toolbar, .add-row, .row-actions, .remove-row { display: none !important; }
+    [contenteditable="true"]:hover,
+    [contenteditable="true"]:focus {
+      background: transparent;
+      box-shadow: none;
+    }
+    .tax-rate { border: 0; padding: 0; }
+  }
+</style>
+</head>
+<body>
+  <div class="toolbar">
+    <span class="hint">Click any field to edit. Totals update automatically.</span>
+    <button onclick="window.print()">Print / Save PDF</button>
+    <button onclick="resetInvoice()">Clear</button>
+  </div>
+
+  <div class="invoice">
+    <header>
+      <div class="brand">
+        <img src="logo.png" alt="Whtalife Inc">
+        <div class="company">
+          <strong>Whtalife Inc</strong>
+          <span contenteditable="true">215 Churchill Avenue</span><br>
+          <span contenteditable="true">King City, Ontario, Canada</span><br>
+          <span contenteditable="true">admin@whtalife.com</span> &nbsp;·&nbsp; <span contenteditable="true">[Phone]</span>
+        </div>
+      </div>
+      <div class="meta">
+        <h1>INVOICE</h1>
+        <table>
+          <tr><td>Invoice #</td><td><strong contenteditable="true">INV-0001</strong></td></tr>
+          <tr><td>Issue Date</td><td contenteditable="true">YYYY-MM-DD</td></tr>
+          <tr><td>Due Date</td><td contenteditable="true">YYYY-MM-DD</td></tr>
+        </table>
+      </div>
+    </header>
+
+    <div class="parties">
+      <section>
+        <h3>Bill To</h3>
+        <p>
+          <strong contenteditable="true">[Client Name]</strong><br>
+          <span contenteditable="true">[Client Address]</span><br>
+          <span contenteditable="true">[City, Province, Postal Code]</span><br>
+          <span contenteditable="true">[Client Email]</span>
+        </p>
+      </section>
+      <section>
+        <h3>Project / Reference</h3>
+        <p>
+          <span contenteditable="true">[Project name or PO #]</span><br>
+          <span contenteditable="true">[Optional description]</span>
+        </p>
+      </section>
+    </div>
+
+    <table class="items">
+      <thead>
+        <tr>
+          <th style="width:48%">Description</th>
+          <th class="num" style="width:12%">Qty</th>
+          <th class="num" style="width:18%">Rate</th>
+          <th class="num" style="width:18%">Amount</th>
+          <th class="row-actions"></th>
+        </tr>
+      </thead>
+      <tbody id="items-body">
+        <tr>
+          <td contenteditable="true">[Service or product description]</td>
+          <td class="num qty" contenteditable="true">1</td>
+          <td class="num rate" contenteditable="true">0.00</td>
+          <td class="num amount">$0.00</td>
+          <td class="row-actions"><button class="remove-row" title="Remove row">×</button></td>
+        </tr>
+      </tbody>
+    </table>
+    <button class="add-row" onclick="addRow()">+ Add line item</button>
+
+    <div class="totals">
+      <div><span>Subtotal</span><span id="subtotal">$0.00</span></div>
+      <div>
+        <span>HST (<input type="number" class="tax-rate" id="tax-rate" value="13" min="0" step="0.01">%)</span>
+        <span id="tax">$0.00</span>
+      </div>
+      <div class="grand"><span>Total (CAD)</span><span id="total">$0.00</span></div>
+    </div>
+
+    <footer>
+      <div class="notes">
+        <h4>Payment Instructions</h4>
+        <span contenteditable="true">[Bank name, account / transit / institution, or e-Transfer email]</span><br>
+        Payment terms: <span contenteditable="true">Net 30 days from issue date</span>.
+      </div>
+      <div class="notes">
+        <h4>Notes</h4>
+        <span contenteditable="true">[Any notes for the client]</span>
+      </div>
+      <div class="thankyou">Thank you for your business!</div>
+    </footer>
+  </div>
+
+<script>
+  const fmt = n => '$' + (Number(n) || 0).toLocaleString('en-CA', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  const parseNum = s => Number(String(s).replace(/[^0-9.-]/g, '')) || 0;
+
+  function recalc() {
+    let subtotal = 0;
+    document.querySelectorAll('#items-body tr').forEach(tr => {
+      const qty = parseNum(tr.querySelector('.qty').textContent);
+      const rate = parseNum(tr.querySelector('.rate').textContent);
+      const amt = qty * rate;
+      tr.querySelector('.amount').textContent = fmt(amt);
+      subtotal += amt;
+    });
+    const rate = parseNum(document.getElementById('tax-rate').value);
+    const tax = subtotal * (rate / 100);
+    document.getElementById('subtotal').textContent = fmt(subtotal);
+    document.getElementById('tax').textContent = fmt(tax);
+    document.getElementById('total').textContent = fmt(subtotal + tax);
+  }
+
+  function wireRow(tr) {
+    tr.querySelectorAll('[contenteditable="true"]').forEach(el => {
+      el.addEventListener('input', recalc);
+    });
+    const rm = tr.querySelector('.remove-row');
+    if (rm) rm.addEventListener('click', () => {
+      if (document.querySelectorAll('#items-body tr').length > 1) {
+        tr.remove();
+        recalc();
+      }
+    });
+  }
+
+  function addRow() {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td contenteditable="true">Description</td>
+      <td class="num qty" contenteditable="true">1</td>
+      <td class="num rate" contenteditable="true">0.00</td>
+      <td class="num amount">$0.00</td>
+      <td class="row-actions"><button class="remove-row" title="Remove row">×</button></td>
+    `;
+    document.getElementById('items-body').appendChild(tr);
+    wireRow(tr);
+  }
+
+  function resetInvoice() {
+    if (!confirm('Clear all fields and start a new invoice?')) return;
+    location.reload();
+  }
+
+  document.querySelectorAll('#items-body tr').forEach(wireRow);
+  document.getElementById('tax-rate').addEventListener('input', recalc);
+  recalc();
+</script>
+</body>
+</html>
